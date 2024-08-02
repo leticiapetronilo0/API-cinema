@@ -1,14 +1,14 @@
 <?php
 header('Content-Type: application/json');
 
+// Incluir o arquivo de conexão com o banco de dados
+require 'db.php';
+
 // Verifica o método da requisição
 $method = $_SERVER['REQUEST_METHOD'];
 
 // Pega o endpoint da URL
 $endpoint = isset($_GET['endpoint']) ? $_GET['endpoint'] : '';
-
-// Incluir o arquivo de conexão com o banco de dados
-require 'db.php';
 
 // Função para retornar erro JSON
 function returnError($message, $code = 500) {
@@ -32,4 +32,3 @@ try {
     returnError('Erro ao buscar dados: ' . $e->getMessage());
 }
 ?>
-
