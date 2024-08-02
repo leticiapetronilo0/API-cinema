@@ -1,53 +1,35 @@
 <?php
 header('Content-Type: application/json');
-require 'db.php'; // Inclui o arquivo de conexão com o banco de dados
 
+// Verifica o método da requisição
 $method = $_SERVER['REQUEST_METHOD'];
+
+// Pega o endpoint da URL
 $endpoint = isset($_GET['endpoint']) ? $_GET['endpoint'] : '';
 
-switch ($endpoint) {
-    case 'filmes':
-        if ($method === 'GET') {
-            try {
-                $stmt = $pdo->query('SELECT * FROM Filmes');
-                $filmes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                echo json_encode($filmes);
-            } catch (PDOException $e) {
-                http_response_code(500);
-                echo json_encode(['error' => 'Erro ao buscar filmes: ' . $e->getMessage()]);
-            }
-        }
-        break;
+// Incluir o arquivo de conexão com o banco de dados
+require 'db.php';
 
-    case 'sessoes':
-        if ($method === 'GET') {
-            try {
-                $stmt = $pdo->query('SELECT * FROM Sessoes');
-                $sessoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                echo json_encode($sessoes);
-            } catch (PDOException $e) {
-                http_response_code(500);
-                echo json_encode(['error' => 'Erro ao buscar sessões: ' . $e->getMessage()]);
-            }
-        }
-        break;
+// Função para retornar erro JSON
+function returnError($message, $code = 500) {
+    http_response_code($code);
+    echo json_encode(['error' => $message]);
+    exit;
+}
 
-    case 'ingressos':
-        if ($method === 'GET') {
-            try {
-                $stmt = $pdo->query('SELECT * FROM Ingressos');
-                $ingressos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                echo json_encode($ingressos);
-            } catch (PDOException $e) {
-                http_response_code(500);
-                echo json_encode(['error' => 'Erro ao buscar ingressos: ' . $e->getMessage()]);
-            }
-        }
-        break;
+// Verifica se o endpoint é válido
+$validEndpoints = ['filmes', 'sessoes', 'ingressos'];
+if (!in_array($endpoint, $validEndpoints)) {
+    returnError('Endpoint não encontrado', 404);
+}
 
-    default:
-        http_response_code(404);
-        echo json_encode(['error' => 'Endpoint não encontrado']);
-        break;
+// Consulta ao banco de dados e retorna os dados como JSON
+try {
+    $stmt = $pdo->query('SELECT * FROM ' . ucfirst($endpoint)); // Assumindo que o nome da tabela é o mesmo que o endpoint
+    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    echo json_encode($data);
+} catch (PDOException $e) {
+    returnError('Erro ao buscar dados: ' . $e->getMessage());
 }
 ?>
+
