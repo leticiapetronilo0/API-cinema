@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Filmes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gerenciamento de Filmes</h1>
+        
+        <!-- Formulário para inserir novo filme -->
+        <h2>Cadastrar Novo Filme</h2>
+        <form id="addForm">
+            <div class="form-group">
+                <label for="filme">Nome do Filme:</label>
+                <input type="text" id="filme" name="filme" required>
+            </div>
+            <div class="form-group">
+                <label for="ano">Ano de Lançamento:</label>
+                <input type="number" id="ano" name="ano" required>
+            </div>
+            <button type="submit">Adicionar Filme</button>
+        </form>
+
+        <!-- Formulário para deletar filme -->
+        <h2>Deletar Filme</h2>
+        <form id="deleteForm">
+            <div class="form-group">
+                <label for="deleteId">ID do Filme:</label>
+                <input type="number" id="deleteId" name="id" required>
+            </div>
+            <button type="submit">Deletar Filme</button>
+        </form>
+
+        <!-- Tabela para exibir filmes -->
+        <h2>Lista de Filmes</h2>
+        <table id="filmsTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Ano</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Conteúdo da tabela será preenchido pelo JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Função para carregar e exibir filmes
+        async function loadFilms() {
+            try {
+                const response = await fetch('api.php?endpoint=filmes');
+                const films = await response.json();
+                
+                const tableBody = document.querySelector('#filmsTable tbody');
+                tableBody.innerHTML = '';
+                
+                films.forEach(film => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${film.ID}</td>
+                        <td>${film.Nome}</td>
+                        <td>${film.Ano}</td>
+                        <td><button onclick="deleteFilm(${film.ID})">Deletar</button></td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar filmes:', error);
+            }
+        }
+
+        // Função para deletar filme
+        async function deleteFilm(id) {
+            try {
+                const response = await fetch(`delete_movie.php?id=${id}`);
+                const message = await response.text();
+                alert(message);
+                loadFilms(); // Recarrega a lista de filmes
+            } catch (error) {
+                console.error('Erro ao deletar filme:', error);
+            }
+        }
+
+        // Evento para enviar o formulário de inserção
+        document.getElementById('addForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            try {
+                const response = await fetch('add_movie.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const message = await response.text();
+                alert(message);
+                loadFilms(); // Recarrega a lista de filmes
+            } catch (error) {
+                console.error('Erro ao adicionar filme:', error);
+            }
+        });
+
+        // Evento para enviar o formulário de deleção
+        document.getElementById('deleteForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const id = document.getElementById('deleteId').value;
+            deleteFilm(id);
+        });
+
+        // Carrega os filmes ao iniciar a página
+        window.onload = loadFilms;
+    </script>
+</body>
+</html>
